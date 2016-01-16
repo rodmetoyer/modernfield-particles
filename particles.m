@@ -9,10 +9,10 @@ clear all; close all; clc;
 % Simulation definition
 startTime = 0.0;    % Start time in seconds
 endTime = 30.0;     % End time in seconds
-timeStep = 0.1;     % Output time step if desired
+timeStep = 0.1;     % Output time step if desired NOTE: THIS DOES NOT CHANGE THE SOLVER TIMESTEP!!!
 stateFunc = @state;
 doYouWantMovie = true;
-movieFile = 'test10.avi';
+movieFile = 'test1.avi';
 frameRate = 20;
 speedReduction = 1.0;
 
@@ -23,21 +23,21 @@ space.box = [0 width width  0;...
              0 0     height height];
      
 % Define the particles
-particle.number = 10;   % Number of particles - must be an integer
+particle.number = 1;   % Number of particles - must be an integer
 particle.number = int32(particle.number); % Let's not take any chances. Note that int32 rounds, does not truncate
 particle.radius = NaN(1,particle.number);
 particle.mass = NaN(1,particle.number);
 particle.spring = NaN(1,particle.number);
-radius = 0.1; % For a homogenous radius distribution
+radius = 0.05; % For a homogenous radius distribution
 mass = 0.1;
-spring = 100.1;
+spring = 50.1;
 for i=1:1:particle.number
     particle.radius(i) = radius;
     particle.mass(i) = mass;
     particle.spring(i) = spring;
 end
-% Change each radius individually if you want
-particle.mass(5) = 0.1;
+% Change particle properties individually if you want
+% particle.mass(5) = 0.1;
 
 % Other environmental conditions
 space.gravity = 1.0;
@@ -59,12 +59,15 @@ for i = 1:1:particle.number
     x0(4*(i - 1) + 4) = xyd0(i);            % insert yd conditions
 end
 
-%times = startTime:timeStep:endTime;
+% Change particle initial conditions individually if you like
+x0(1) = 0.5*x0(1);
+x0(2) = 0.5*x0(2);
 
-%t = 0; x = x0;
-%xdot = stateFunc(t,x,space,particle);
+% You can use the timestep directly if you want. I like to calculate one
+% based on the framerate that I want.
+%times = startTime:timeStep:endTime;
 times = linspace(startTime,endTime,endTime*frameRate);
-options = odeset('RelTol',1e-9,'AbsTol',1e-9);
+options = odeset('RelTol',1e-9,'AbsTol',1e-9); % Solution times can go up pretty quickly if you turn the tolerance too low.
 [time, states] = ode45(@(t,x)stateFunc(t,x,space,particle),times,x0);
 
 % Break out for plotting and movie
@@ -88,9 +91,17 @@ if doYouWantMovie
         end
         hold off
         axis([0,width,0,height]); grid off;
+        title('Balls!');
         Mov(i) = getframe(gcf);
     end
     writerObj = VideoWriter(movieFile);
     writerObj.FrameRate = frameRate/speedReduction; writerObj.Quality = 100; % optional
     open(writerObj); writeVideo(writerObj,Mov); close(writerObj);
 end
+
+% Move the movie to the bin
+% TODO(Rodney) gitignore the bin
+if exist('bin','dir') == 0
+    mkdir('bin');
+end
+movefile(movieFile,['bin/' movieFile]);
