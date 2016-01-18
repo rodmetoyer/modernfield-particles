@@ -8,7 +8,7 @@ clear all; close all; clc;
 
 % Simulation definition
 startTime = 0.0;    % Start time in seconds
-endTime = 30.0;     % End time in seconds
+endTime = 10.0;     % End time in seconds
 timeStep = 0.1;     % Output time step if desired NOTE: THIS DOES NOT CHANGE THE SOLVER TIMESTEP!!!
 stateFunc = @state;
 doYouWantMovie = true;
@@ -17,30 +17,32 @@ frameRate = 20;
 speedReduction = 1.0;
 
 % The vertices of an n-dimensional cube defines the space
-height = 2.0;
-width = 2.0;
+height = 2.0;   % meters
+width = 2.0;    % meters
 space.box = [0 width width  0;...
              0 0     height height];
      
 % Define the particles
-particle.number = 1;   % Number of particles - must be an integer
+particle.number = 20;   % Number of particles - must be an integer
 particle.number = int32(particle.number); % Let's not take any chances. Note that int32 rounds, does not truncate
 particle.radius = NaN(1,particle.number);
 particle.mass = NaN(1,particle.number);
 particle.spring = NaN(1,particle.number);
-radius = 0.05; % For a homogenous radius distribution
-mass = 0.1;
-spring = 50.1;
+radius = 0.05;  % m, For a homogenous radius distribution
+mass = 0.1;     % kg
+spring = 500;   % N/m
+damper = 1;     % kg/s
 for i=1:1:particle.number
     particle.radius(i) = radius;
     particle.mass(i) = mass;
     particle.spring(i) = spring;
+    particle.damper(i) = damper;
 end
 % Change particle properties individually if you want
 % particle.mass(5) = 0.1;
 
 % Other environmental conditions
-space.gravity = 1.0;
+space.gravity = 9.81;
 
 % Particle initial conditions
 % Change initial conditions for each particle individually if you like
@@ -86,11 +88,13 @@ if doYouWantMovie
     n = 0;
     for i=1:1:length(x)
         for j = 1:1:particle.number
-            plot(x(i,j),y(i,j),'ob','MarkerSize',10,'MarkerEdgeColor','b','MarkerFaceColor','b');
+            %Rj = particle.radius(j)/0.0003528;  % calculate particle radius in points
+            plot(x(i,j),y(i,j),'ob','MarkerSize',12,'MarkerEdgeColor','b','MarkerFaceColor','b');
             hold on
         end
         hold off
-        axis([0,width,0,height]); grid off;
+        axis([0,width,0,height]);
+        grid on;
         title('Balls!');
         Mov(i) = getframe(gcf);
     end
