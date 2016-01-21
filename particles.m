@@ -11,6 +11,35 @@ startTime = 0.0;        % Start time in seconds
 endTime = 30.0;         % End time in seconds
 timeStep = 0.1;         % Output time step if desired NOTE: THIS DOES NOT CHANGE THE SOLVER TIMESTEP!!!
 stateFunc = @state;
+<<<<<<< HEAD
+doYouWantMovie = true;
+movieFile = 'oddParticle10.avi';
+frameRate = 20;
+speedReduction = 1.0;
+
+% The vertices of an n-dimensional cube defines the space
+height = 10.0;
+width = 10.0;
+space.box = [0 width width  0;...
+             0 0     height height];
+     
+% Define the particles
+particle.number = 10;   % Number of particles - must be an integer
+particle.number = int32(particle.number); % Let's not take any chances. Note that int32 rounds, does not truncate
+particle.radius = NaN(1,particle.number);
+particle.mass = NaN(1,particle.number);
+particle.spring = NaN(1,particle.number);
+particle.damp = NaN(1,particle.number);
+radius = 0.05; % For a homogenous radius distribution
+mass = 0.1;
+spring = 500.0;
+damp = 10.0;
+for i=1:1:particle.number
+    particle.radius(i) = radius;
+    particle.mass(i) = mass;
+    particle.spring(i) = spring;
+    particle.damp(i) = damp;
+=======
 doYouWantMovie = true;  % true = make a movie file
 movieFile = 'test1.avi';% name of the movie file
 frameRate = 20;         % frame rate of the movie file
@@ -38,12 +67,17 @@ for i=1:1:particle.number           % for all particles,
     particle.mass(i) = mass;        % mass
     particle.spring(i) = spring;    % spring constant
     particle.damper(i) = damper;    % damper constant
+>>>>>>> refs/remotes/origin/YoderBranch1
 end
 % Change particle properties individually if you want
 % particle.mass(5) = 0.1;
 
 % Other environmental conditions
+<<<<<<< HEAD
+space.gravity = 10.0;
+=======
 space.gravity = 9.81;           % m/s2, gravity
+>>>>>>> refs/remotes/origin/YoderBranch1
 
 % Particle initial conditions
 % Change initial conditions for each particle individually if you like
@@ -64,8 +98,19 @@ for i = 1:1:particle.number
 end
 
 % Change particle initial conditions individually if you like
+<<<<<<< HEAD
+% If you want a single odd particle make oddParticle particle number that
+% you want to be odd, otherwise make it zero
+oddParticle = 1;
+%x0(oddParticle) = 1.5*x0(oddParticle);
+%x0(oddParticle+1) = 1.5*x0(oddParticle+1);
+x0(3) = x0(oddParticle+2)*5;
+x0(4) = x0(oddParticle+3)*50;
+particle.radius(oddParticle) = 0.2;
+=======
 x0(1) = 0.5*x0(1);      % specify the x position of the first particle
 x0(2) = 0.5*x0(2);      % specify the y position of the first particle
+>>>>>>> refs/remotes/origin/YoderBranch1
 
 % You can use the timestep directly if you want. I like to calculate one
 % based on the framerate that I want.
@@ -83,6 +128,22 @@ for i = 1:1:particle.number
 end
 
 % Make a movie of the motion
+<<<<<<< HEAD
+if doYouWantMovie
+    figure;
+    movegui(gcf);
+    clear Mov; % Just in case
+    n = 0;
+    for i=1:1:length(x)
+        for j = 1:1:particle.number
+            if j == oddParticle && oddParticle ~= 0
+                color = 'r';
+            else
+                color = 'b';
+            end
+            plot(x(i,j),y(i,j),'ob','MarkerSize',10,'MarkerEdgeColor',color,'MarkerFaceColor',color);
+            hold on
+=======
 if doYouWantMovie                       % if you want a movie
     figure;                             % create a new figure
     movegui(gcf);                       % set the current figure as the first frame of the movie
@@ -92,6 +153,7 @@ if doYouWantMovie                       % if you want a movie
         for j = 1:1:particle.number     % and for all the particles
             plot(x(i,j),y(i,j),'ob','MarkerSize',12,'MarkerEdgeColor','b','MarkerFaceColor','b');
             hold on                     % plot the particles as blue dots and hold the plot on
+>>>>>>> refs/remotes/origin/YoderBranch1
         end
         hold off                        % turn off the plot
         axis([0,width,0,height]);       % set axis 
