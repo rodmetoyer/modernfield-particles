@@ -10,7 +10,7 @@ clc;      % clear the command line, close figures, clear variables
 
 % Simulation definition
 startTime = 0.0;        % Start time in seconds
-endTime = 10.0;         % End time in seconds
+endTime = 20.0;         % End time in seconds
 timeStep = 0.1;         % Output time step if desired NOTE: THIS DOES NOT CHANGE THE SOLVER TIMESTEP!!!
 stateFunc = @state2FixedC;
 %c1 = 0.3247; c2 = -3.1269; c3 = 10.372; % coefficients for stateFixed
@@ -28,7 +28,7 @@ space.box = [0 width width  0;...   % dimensions of the box
              0 0     height height];
      
 % Define the particles
-particle.number = 2;   % Number of particles - must be an integer
+particle.number = 3;   % Number of particles - must be an integer
 particle.number = int32(particle.number); % Let's not take any chances. Note that int32 rounds, does not truncate
 particle.radius = NaN(1,particle.number); % preallocate vector of particle radii
 particle.mass = NaN(1,particle.number);   % preallocate vector of particle masses
@@ -36,10 +36,12 @@ particle.spring = NaN(1,particle.number); % preallocate vector of particle sprin
 particle.damper = NaN(1, particle.number);% preallocate vector of particle damper constants
 particle.charge = NaN(1, particle.number); % preallocate vector of particle charges
 particle.ke = 8987551787.3681764;       % N m2 / C2, Coulombs constant
-radius = 0.05;  % m, For a homogenous radius distribution
-mass = 9.1094e-31;     % kg, mass of particles
-spring = 1000;   % N/m, spring constant
-damper = 2.5;     % kg/s, damper constant
+% radius = 0.05;  % m, For a homogenous radius distribution
+radius = 8.775e-16;     % m, radius of a proton 
+mass = 1.6726219e-27;     % kg, mass of particles
+spring = 0.0001;   % N/m, spring constant
+% damper = 2.5;     % kg/s, damper constant
+damper = 0;
 charge = 1.6022e-19;    % C, charge of an electron
 for i=1:1:particle.number           % for all particles,
     particle.radius(i) = radius;    % radius
@@ -49,13 +51,15 @@ for i=1:1:particle.number           % for all particles,
     particle.charge(i) = -charge;   % elementary charge 
 end
 particle.time = endTime;
-particle.charge(2) = -charge;
-particle.charge(4) = -charge;
+particle.charge(1) = -2*charge;
+particle.charge(2) = 8*charge;
+particle.charge(3) = -2*charge;
 
 % Change particle properties individually if you want
 % particle.mass(5) = 0.1;
 % Other environmental conditions
-space.gravity = 9.81;           % m/s2, gravity
+% space.gravity = 9.81;           % m/s2, gravity
+space.gravity = 0;
 
 % Particle initial conditions
 % Change initial conditions for each particle individually if you like
@@ -64,8 +68,8 @@ space.gravity = 9.81;           % m/s2, gravity
 
 % xx0 = linspace(2*radius, width-2*radius,particle.number);   % linearlly space particles in x
 % xy0 = ones(1,particle.number)*(height-1.1*radius);              % place all on the same height
-xx0 = [0.25, 0.75]*width;
-xy0 = [0.5, 0.5]*height;
+xx0 = [0.25, 0.5, 0.75]*width;
+xy0 = [0.5, 0.5, 0.5]*height;
 % xx0(1:4) = [0.25, 0.75, 0.75, 0.25]*width;
 % xy0(1:4) = [0.75, 0.75, 0.25, 0.25]*height;
 % xx0(10:18) = 0.07*width*(1:9);
@@ -86,7 +90,7 @@ xy0 = [0.5, 0.5]*height;
 % xy0(64:72) = 8*0.075*height;
 % xy0(73:81) = 9*0.075*height;
 
-xxd0 = 0.0*ones(1,particle.number);                             % x initial velocoity
+xxd0 = zeros(1,particle.number);                             % x initial velocoity
 xyd0 = zeros(1,particle.number);                                % y initial velocity
 
 figure
@@ -106,7 +110,7 @@ end
 % Change particle initial conditions individually if you like
 % If you want a single odd particle make oddParticle particle number that
 % you want to be odd, otherwise make it zero
-% oddParticle = 5;
+oddParticle = 0;
 % particle.radius(oddParticle) = radius*3;
 % particle.mass(oddParticle) = mass*3;
 % x0(oddParticle) = 1.5*x0(oddParticle);
@@ -140,6 +144,7 @@ if doYouWantMovie
     f1 = figure;
 %     axis equal
     axis([0,width,0,height]);       % set axis 
+    
     %h2 = get(f1, 'Position')       % gets position in units of points
     %disp('Pixels?');
     set(f1, 'Units', 'points');     % sets units to points
@@ -156,14 +161,17 @@ if doYouWantMovie
         for j = 1:1:particle.number
             if j == oddParticle && oddParticle ~= 0
                 color = 'r';
-                size = particle.radius(oddParticle)*h1(3)/width;
+                %size = particle.radius(oddParticle)*h1(3)/width;
+                size = 10;
             else
                 color = 'b';
-                size = particle.radius(j)*h1(3)/width;
+                %size = particle.radius(j)*h1(3)/width;
+                size = 10;
             end
             plot(x(i,j),y(i,j),'ob','MarkerSize',size,'MarkerEdgeColor',color,'MarkerFaceColor',color);
             hold on
         end
+        plot([space.box(1, :), space.box(1, 1)], [space.box(2, :), space.box(2, 1)], 'r')
         hold off                        % turn off the plot
 %         axis equal
         axis([0,width,0,height]);       % set axis 
