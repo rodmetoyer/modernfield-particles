@@ -1,7 +1,7 @@
 function [xdot] = state2FixedC(t,x,space,particle)
 % Fixed = fixed the issue with contact between particles  and the wall
 % FixedC = adding Coulomb forces to the model (distance forces)
-
+t
 % init xdot
 xdot = NaN(length(x),1);
 
@@ -40,15 +40,14 @@ for i=1:1:particle.number
 Fy = -massi*g + Fy;
 
 % wall forces
+% the forces on the ith particle are stored here as to use as little memory
+% as possible in order to optimize the code
 FX(i, i) = Fx;
 FY(i, i) = Fy;
 end
 
 % MASS FORCES
 for i=1:1:particle.number - 1   
-    fx = 0;
-    fy = 0;
-    
     % Particle dependent properties
     radiusi = particle.radius(i);   % extract the radius of the particle
     springi = particle.spring(i);
@@ -58,7 +57,8 @@ for i=1:1:particle.number - 1
     % Now do interparticle forces
     % Note that this is probably the second to worst way to do this, but it works
     for j=i+1:1:particle.number        
-       
+        fx = 0;
+        fy = 0;
         % Get the radius of particle j
         radiusj = particle.radius(j);
         
@@ -89,12 +89,14 @@ for i=1:1:particle.number - 1
             else
                 Fdmp = (-distd)*(damperi*damperj)/(damperi+damperj);
             end
+            % fx is the Fx force in FX(i, j) which is the force on ith
+            % particle with respect to the jth particle (ie the force
+            % vector starts at j and ends at i)
             fx = - Fmag*distx/distance + Fdmp*distx/distance; % Minus because it is force on i
 %             FX = Fmag*distx/distance - Fdmp*distx/distance; % Minus because it is force on i
             fy = - Fmag*disty/distance + Fdmp*distx/distance;
 %             FY = Fmag*disty/distance - Fdmp*distx/distance;
         end
-
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Electrical forces (Coulomb force)
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -104,10 +106,12 @@ for i=1:1:particle.number - 1
         chargej = particle.charge(j);   % charge on the particle
         
         % Calculate the force between particles
+        % fx is the Fx force in FX(i, j) which is the force on ith
+        % particle with respect to the jth particle (ie the force
+        % vector starts at j and ends at i)
         Fe = ke*chargei*chargej/(distance^2);
-        fx = fx - Fe*distx/distance;
-        fy = fy - Fe*disty/distance;
-
+        fx = fx + Fe*distx/distance;
+        fy = fy + Fe*disty/distance;
         
         % Sum all forces on the particle
         FX(i, j) = -fx;      % force on i due to j
@@ -117,7 +121,7 @@ for i=1:1:particle.number - 1
     end
 end
 
-for k = 1:1:particle.number   
+for k = 1:1:particle.number 
     % Put it all together
     massi = particle.mass(k);
     xdot(4*(k - 1) + 1) = x(4*(k - 1) + 3);

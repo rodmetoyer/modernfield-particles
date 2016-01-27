@@ -10,7 +10,7 @@ clc;      % clear the command line, close figures, clear variables
 
 % Simulation definition
 startTime = 0.0;        % Start time in seconds
-endTime = 20.0;         % End time in seconds
+endTime = 30.0;         % End time in seconds
 timeStep = 0.1;         % Output time step if desired NOTE: THIS DOES NOT CHANGE THE SOLVER TIMESTEP!!!
 stateFunc = @state2FixedC;
 %c1 = 0.3247; c2 = -3.1269; c3 = 10.372; % coefficients for stateFixed
@@ -28,7 +28,7 @@ space.box = [0 width width  0;...   % dimensions of the box
              0 0     height height];
      
 % Define the particles
-particle.number = 3;   % Number of particles - must be an integer
+particle.number = 2;   % Number of particles - must be an integer
 particle.number = int32(particle.number); % Let's not take any chances. Note that int32 rounds, does not truncate
 particle.radius = NaN(1,particle.number); % preallocate vector of particle radii
 particle.mass = NaN(1,particle.number);   % preallocate vector of particle masses
@@ -51,9 +51,8 @@ for i=1:1:particle.number           % for all particles,
     particle.charge(i) = -charge;   % elementary charge 
 end
 particle.time = endTime;
-particle.charge(1) = -2*charge;
-particle.charge(2) = 8*charge;
-particle.charge(3) = -2*charge;
+particle.charge(1) = charge;
+particle.charge(2) = -charge;
 
 % Change particle properties individually if you want
 % particle.mass(5) = 0.1;
@@ -68,8 +67,7 @@ space.gravity = 0;
 
 % xx0 = linspace(2*radius, width-2*radius,particle.number);   % linearlly space particles in x
 % xy0 = ones(1,particle.number)*(height-1.1*radius);              % place all on the same height
-xx0 = [0.25, 0.5, 0.75]*width;
-xy0 = [0.5, 0.5, 0.5]*height;
+
 % xx0(1:4) = [0.25, 0.75, 0.75, 0.25]*width;
 % xy0(1:4) = [0.75, 0.75, 0.25, 0.25]*height;
 % xx0(10:18) = 0.07*width*(1:9);
@@ -93,10 +91,28 @@ xy0 = [0.5, 0.5, 0.5]*height;
 xxd0 = zeros(1,particle.number);                             % x initial velocoity
 xyd0 = zeros(1,particle.number);                                % y initial velocity
 
-figure
-plot(xx0, xy0, 'ob')
-axis([0,width,0,height]);       % set axis
-grid on
+% Initial conditions for orbiting charges (n = 2)
+xx0 = [0.5, 0.75]*width;
+xy0 = [0.5, 0.5]*height;
+xxd0 = [0, 0];
+xyd0 = [0, 0.3];
+
+% % % Initial conditions for four particles in a square % % (n = 3)
+% xx0 = [0.25, 0.75, 0.25, 0.75]*width;
+% xy0 = [0.75, 0.75, 0.25, 0.25]*height;
+% % xxd0 = [0.05, 0, -0.05]*width;
+% % xyd0 = [-0.05, 0, 0.05]*height;
+
+% % Initial conditions for three particles in a line stable % % (n = 3)
+% xx0 = [0.25, 0.5, 0.75]*width;
+% xy0 = [0.25, 0.5, 0.75]*height;
+% xxd0 = [0.05, 0, -0.05]*width;
+% xyd0 = [-0.05, 0, 0.05]*height;
+
+% figure
+% plot(xx0, xy0, 'ob')
+% axis([0,width,0,height]);       % set axis
+% grid on
 
 % Put all initial conditions into one vector
 % vector = [x1, y1, xd1, yd1, x2, y2, .... , xn, yn, xdn, ydn]
@@ -110,7 +126,7 @@ end
 % Change particle initial conditions individually if you like
 % If you want a single odd particle make oddParticle particle number that
 % you want to be odd, otherwise make it zero
-oddParticle = 0;
+oddParticle = 2;
 % particle.radius(oddParticle) = radius*3;
 % particle.mass(oddParticle) = mass*3;
 % x0(oddParticle) = 1.5*x0(oddParticle);
@@ -129,7 +145,7 @@ disp(['Estimated run time is ', num2str(tc), ' seconds']);
 times = linspace(startTime,endTime,endTime*frameRate);      % linear vector for time
 options = odeset('RelTol',1e-9,'AbsTol',1e-9); % Solution times can go up pretty quickly if you turn the tolerance too low.
 tic
-[time, states] = ode45(@(t,x)stateFunc(t,x,space,particle),times,x0);   % ode solver command
+[time, states] = ode23(@(t,x)stateFunc(t,x,space,particle),times,x0);   % ode solver command
 toc
 % Break out for plotting and movie
 for i = 1:1:particle.number    
