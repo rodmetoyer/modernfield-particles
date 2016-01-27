@@ -1,4 +1,7 @@
-function [xdot] = state2Fixed(t,x,space,particle)
+function [xdot] = state2FixedC(t,x,space,particle)
+% Fixed = fixed the issue with contact between particles  and the wall
+% FixedC = adding Coulomb forces to the model (distance forces)
+
 % init xdot
 xdot = NaN(length(x),1);
 
@@ -18,6 +21,7 @@ for i=1:1:particle.number
     springi = particle.spring(i);
     massi = particle.mass(i);
     damperi = particle.damper(i);
+    chargei = particle.charge(i);
     
     % Walls
     if x(4*(i - 1) + 1) < radiusi + box(1,1) % if x < radius + left wall
@@ -33,7 +37,7 @@ for i=1:1:particle.number
     end
 
 % Gravity
-Fy = -massi*g + Fy;
+% Fy = -massi*g + Fy;
 
 % wall forces
 FX(i, i) = Fx;
@@ -43,13 +47,14 @@ end
 % MASS FORCES
 for i=1:1:particle.number - 1   
     % Particle dependent properties
-    radiusi = particle.radius(i);
+    radiusi = particle.radius(i);   % extract the radius of the particle
     springi = particle.spring(i);
     massi = particle.mass(i);
     damperi = particle.damper(i);
+    chargei = particle.charge(i);
     
     % Now do interparticle forces
-    % Note that this is probably the worst way to do this, but it works
+    % Note that this is probably the second to worst way to do this, but it works
     for j=i+1:1:particle.number        
        
         % Get the radius of particle j
@@ -60,11 +65,15 @@ for i=1:1:particle.number - 1
         disty = x(4*(j - 1) + 2) - x(4*(i - 1) + 2);
         distance = sqrt(distx^2 + disty^2);
         
-        % Get the time rate of change of the distance between i and j
-        dxd = x(4*(j - 1) + 3) - x(4*(i - 1) + 3);
-        dyd = x(4*(j - 1) + 4) - x(4*(i - 1) + 4);
-        distd = -(distx*dxd + disty*dyd)/distance; % derivative of R1 + R2 - distance
-        
+%         % Get the time rate of change of the distance between i and j
+%         dxd = x(4*(j - 1) + 3) - x(4*(i - 1) + 3);
+%         dyd = x(4*(j - 1) + 4) - x(4*(i - 1) + 4);
+%         distd = -(distx*dxd + disty*dyd)/distance; % derivative of R1 + R2 - distance
+
+        % Particle forces
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % Mechanical forces (contact for rigid body motion)
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % See if particle j is in contact with particle i. If it is,
         % calculate the force on i (force on j will be calculated when it
         % becomes i -> I told you this was a horrible way to do this).
@@ -83,6 +92,17 @@ for i=1:1:particle.number - 1
             FY(i, j) = - Fmag*disty/distance + Fdmp*distx/distance;
             FY(j, i) = Fmag*disty/distance - Fdmp*distx/distance;
         end
+
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % Electrical forces (Coulomb force)
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        
+        % Get the Coulomb constant
+        ke = particle.ke;
+        
+        % Calculate the force between particles
+        Fe = ke*
+
     end
 end
 
