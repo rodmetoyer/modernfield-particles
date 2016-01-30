@@ -10,7 +10,7 @@ clc;      % clear the command line, close figures, clear variables
 
 % Simulation definition
 startTime = 0.0;        % Start time in seconds
-endTime = 30.0;         % End time in seconds
+endTime = 42.0;         % End time in seconds
 timeStep = 0.1;         % Output time step if desired NOTE: THIS DOES NOT CHANGE THE SOLVER TIMESTEP!!!
 stateFunc = @state2FixedC;
 %c1 = 0.3247; c2 = -3.1269; c3 = 10.372; % coefficients for stateFixed
@@ -28,7 +28,7 @@ space.box = [0 width width  0;...   % dimensions of the box
              0 0     height height];
      
 % Define the particles
-particle.number = 2;   % Number of particles - must be an integer
+particle.number = 3;   % Number of particles - must be an integer
 particle.number = int32(particle.number); % Let's not take any chances. Note that int32 rounds, does not truncate
 particle.radius = NaN(1,particle.number); % preallocate vector of particle radii
 particle.mass = NaN(1,particle.number);   % preallocate vector of particle masses
@@ -51,8 +51,10 @@ for i=1:1:particle.number           % for all particles,
     particle.charge(i) = -charge;   % elementary charge 
 end
 particle.time = endTime;
-particle.charge(1) = charge;
-particle.charge(2) = -charge;
+particle.charge(1) = 5*charge;
+% particle.charge(2) = -charge;
+% particle.charge(3) = -charge;
+% particle.charge(4) = -charge;
 
 % Change particle properties individually if you want
 % particle.mass(5) = 0.1;
@@ -92,10 +94,10 @@ xxd0 = zeros(1,particle.number);                             % x initial velocoi
 xyd0 = zeros(1,particle.number);                                % y initial velocity
 
 % Initial conditions for orbiting charges (n = 2)
-xx0 = [0.5, 0.75]*width;
-xy0 = [0.5, 0.5]*height;
-xxd0 = [0, 0];
-xyd0 = [0, 0.3];
+xx0 = [0.5, 0.25, 0.75, 0.5, 0.5]*width;
+xy0 = [0.5, 0.5, 0.5, 0.75, 0.25]*height;
+xxd0 = [0, 0, 0, 0.5, -0.5];
+xyd0 = [0, 0.5, -0.5, 0, 0];
 
 % % % Initial conditions for four particles in a square % % (n = 3)
 % xx0 = [0.25, 0.75, 0.25, 0.75]*width;
@@ -126,7 +128,7 @@ end
 % Change particle initial conditions individually if you like
 % If you want a single odd particle make oddParticle particle number that
 % you want to be odd, otherwise make it zero
-oddParticle = 2;
+oddParticle = 1;
 % particle.radius(oddParticle) = radius*3;
 % particle.mass(oddParticle) = mass*3;
 % x0(oddParticle) = 1.5*x0(oddParticle);
@@ -159,6 +161,7 @@ end
 if doYouWantMovie
     f1 = figure;
 %     axis equal
+
     axis([0,width,0,height]);       % set axis 
     
     %h2 = get(f1, 'Position')       % gets position in units of points
@@ -178,20 +181,24 @@ if doYouWantMovie
             if j == oddParticle && oddParticle ~= 0
                 color = 'r';
                 %size = particle.radius(oddParticle)*h1(3)/width;
-                size = 10;
+                size = 12;
             else
                 color = 'b';
                 %size = particle.radius(j)*h1(3)/width;
-                size = 10;
+                size = 8;
             end
             plot(x(i,j),y(i,j),'ob','MarkerSize',size,'MarkerEdgeColor',color,'MarkerFaceColor',color);
             hold on
         end
         plot([space.box(1, :), space.box(1, 1)], [space.box(2, :), space.box(2, 1)], 'r')
-        hold off                        % turn off the plot
+                              % turn off the plot
 %         axis equal
         axis([0,width,0,height]);       % set axis 
+        axis equal
         grid on;                        % turn on the grid
+        plot(states(1:i, 5), states(1:i, 6))
+        plot(states(1:i, 9), states(1:i, 10))
+        hold off
         title(['Time = ', num2str(time(i)), ' seconds']); % put current time in the title
         Mov(i) = getframe(gcf);         % get the frame and compile it into the movie file
     end

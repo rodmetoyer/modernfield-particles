@@ -129,4 +129,10 @@ for k = 1:1:particle.number
     xdot(4*(k - 1) + 3) = (1/massi)*sum(FX(k, :));
     xdot(4*(k - 1) + 4) = (1/massi)*sum(FY(k, :));   
 end
+    k = 1; % make the first particle stationary
+    xdot(4*(k - 1) + 1) = x(4*(k - 1) + 3);
+    xdot(4*(k - 1) + 2) = x(4*(k - 1) + 4);
+    xdot(4*(k - 1) + 3) = 0;
+    xdot(4*(k - 1) + 4) = 0;  
+
 end
