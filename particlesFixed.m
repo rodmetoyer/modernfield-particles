@@ -10,20 +10,20 @@ clc;      % clear the command line, close figures, clear variables
 
 % Simulation definition
 startTime = 0.0;        % Start time in seconds
-endTime = 42.0;         % End time in seconds
-timeStep = 0.1;         % Output time step if desired NOTE: THIS DOES NOT CHANGE THE SOLVER TIMESTEP!!!
+endTime = 90.0;         % End time in seconds
+timeStep = 0.25;         % Output time step if desired NOTE: THIS DOES NOT CHANGE THE SOLVER TIMESTEP!!!
 stateFunc = @state2FixedC;
 %c1 = 0.3247; c2 = -3.1269; c3 = 10.372; % coefficients for stateFixed
-c1 = 0.1999; c2 = -3.1515; c3 = 13.751; % coefficients for state2Fixed
+% c1 = 0.1999; c2 = -3.1515; c3 = 13.751; % coefficients for state2Fixed
 
 doYouWantMovie = true;  % true = make a movie file
-movieFile = 'capture1.avi';% name of the movie file
+movieFile = 'capture2.avi';% name of the movie file
 frameRate = 20;         % frame rate of the movie file
 speedReduction = 1.0;   % reduce the frame rate by a constant value
 
 % The vertices of an n-dimensional cube defines the space
-height = 10;           % meters
-width = 10;            % meters
+height = 20;           % meters
+width = 20;            % meters
 space.box = [0 width width  0;...   % dimensions of the box
              0 0     height height];
      
@@ -95,9 +95,9 @@ xyd0 = zeros(1,particle.number);                                % y initial velo
 
 % Initial conditions for orbiting charges (n = 2)
 xx0 = [0.5, 0.25, 0.75, 0.5, 0.5]*width;
-xy0 = [0.5, 0.5, 0.5, 0.75, 0.25]*height;
+xy0 = [0.5, 0.5, 0.5, 0.85, 0.15]*height;
 xxd0 = [0, 0, 0, 0.5, -0.5];
-xyd0 = [0, 0.5, -0.5, 0, 0];
+xyd0 = [0, 0.3625, -0.3625, 0, 0];
 
 % % % Initial conditions for four particles in a square % % (n = 3)
 % xx0 = [0.25, 0.75, 0.25, 0.75]*width;
@@ -142,9 +142,10 @@ oddParticle = 1;
 % You can use the timestep directly if you want. I like to calculate one
 % based on the framerate that I want.
 %times = startTime:timeStep:endTime;
-tc = c1*(particle.number^2) + c2*particle.number + c3;
-disp(['Estimated run time is ', num2str(tc), ' seconds']);
-times = linspace(startTime,endTime,endTime*frameRate);      % linear vector for time
+% tc = c1*(particle.number^2) + c2*particle.number + c3;
+% disp(['Estimated run time is ', num2str(tc), ' seconds']);
+% times = linspace(startTime,endTime,endTime*frameRate);      % linear vector for time
+times = startTime:timeStep:endTime;
 options = odeset('RelTol',1e-9,'AbsTol',1e-9); % Solution times can go up pretty quickly if you turn the tolerance too low.
 tic
 [time, states] = ode23(@(t,x)stateFunc(t,x,space,particle),times,x0);   % ode solver command
@@ -176,7 +177,7 @@ if doYouWantMovie
     clear Mov; % Just in case
     n = 0;
     size = 10;
-    for i=1:1:length(x)
+    for i=1:1:length(time)
         for j = 1:1:particle.number
             if j == oddParticle && oddParticle ~= 0
                 color = 'r';
@@ -190,7 +191,8 @@ if doYouWantMovie
             plot(x(i,j),y(i,j),'ob','MarkerSize',size,'MarkerEdgeColor',color,'MarkerFaceColor',color);
             hold on
         end
-        plot([space.box(1, :), space.box(1, 1)], [space.box(2, :), space.box(2, 1)], 'r')
+        %plot([space.box(1, :), space.box(1, 1)], [space.box(2, :),...
+        %space.box(2, 1)], 'r') % plots the box
                               % turn off the plot
 %         axis equal
         axis([0,width,0,height]);       % set axis 
@@ -199,7 +201,7 @@ if doYouWantMovie
         plot(states(1:i, 5), states(1:i, 6))
         plot(states(1:i, 9), states(1:i, 10))
         hold off
-        title(['Time = ', num2str(time(i)), ' seconds']); % put current time in the title
+        %title(['Time = ', num2str(time(i)), ' seconds']); % put current time in the title
         Mov(i) = getframe(gcf);         % get the frame and compile it into the movie file
     end
     writerObj = VideoWriter(movieFile); % write the movie to a file
