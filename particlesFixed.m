@@ -10,7 +10,7 @@ clear all; close all; clc;      % clear the command line, close figures, clear v
 startTime = 0.0;        % Start time in seconds
 endTime = 30.0;         % End time in seconds
 timeStep = 0.1;         % Output time step if desired NOTE: THIS DOES NOT CHANGE THE SOLVER TIMESTEP!!!
-stateFunc = @stateFixed;
+stateFunc = @state2Fixed;
 doYouWantMovie = true;  % true = make a movie file
 movieFile = 'test1.avi';% name of the movie file
 frameRate = 20;         % frame rate of the movie file
@@ -43,7 +43,7 @@ end
 % particle.mass(5) = 0.1;
 
 % Other environmental conditions
-space.gravity = 9.81;           % m/s2, gravity
+space.gravity = 0.0;           % m/s2, gravity
 
 % Particle initial conditions
 % Change initial conditions for each particle individually if you like
@@ -51,7 +51,7 @@ space.gravity = 9.81;           % m/s2, gravity
 % WARNING - current method assumes that you did not saturate your space!!!
 xx0 = linspace(2*radius, width-2*radius,particle.number);   % linearlly space particles in x
 xy0 = ones(1,particle.number)*(height-1.1*radius);              % place all on the same height
-xxd0 = 0.1*ones(1,particle.number);                             % x initial velocoity
+xxd0 = 0.0*ones(1,particle.number);                             % x initial velocoity
 xyd0 = zeros(1,particle.number);                                % y initial velocity
 
 % Put all initial conditions into one vector
@@ -69,11 +69,12 @@ end
 oddParticle = 1;
 %x0(oddParticle) = 1.5*x0(oddParticle);
 %x0(oddParticle+1) = 1.5*x0(oddParticle+1);
-x0(3) = x0(oddParticle+2)*5;
-x0(4) = x0(oddParticle+3)*50;
+x0(3) = x0(oddParticle+2)*5+10.0;
+x0(4) = x0(oddParticle+3)*50+10.0;
 particle.radius(oddParticle) = 0.2;
 x0(1) = 0.5*x0(1);      % specify the x position of the first particle
 x0(2) = 0.5*x0(2);      % specify the y position of the first particle
+particle.mass(oddParticle) = mass*2.0;
 
 % You can use the timestep directly if you want. I like to calculate one
 % based on the framerate that I want.

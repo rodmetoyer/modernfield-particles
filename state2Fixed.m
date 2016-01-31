@@ -32,12 +32,12 @@ for i=1:1:particle.number
         Fy = - (radiusi - (box(2,4) - x(4*(i - 1) + 2)))*springi - x(4*(i - 1) + 4)*damperi;
     end
 
-% Gravity
-Fy = -massi*g + Fy;
-
-% wall forces
-FX(i, i) = Fx;
-FY(i, i) = Fy;
+    % Gravity
+    Fy = -massi*g + Fy;
+    
+    % wall forces
+    FX(i, i) = Fx;
+    FY(i, i) = Fy;
 end
 
 % MASS FORCES
