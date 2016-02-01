@@ -8,36 +8,46 @@ clear all; close all; clc;      % clear the command line, close figures, clear v
 
 % Simulation definition
 startTime = 0.0;        % Start time in seconds
-endTime = 30.0;         % End time in seconds
+endTime = 180.0;         % End time in seconds
 timeStep = 0.1;         % Output time step if desired NOTE: THIS DOES NOT CHANGE THE SOLVER TIMESTEP!!!
-stateFunc = @state2Fixed;
+stateFunc = @stateCoulomb;
 doYouWantMovie = true;  % true = make a movie file
-movieFile = 'test1.avi';% name of the movie file
+movieFile = 'cTestSuperMass12.avi';% name of the movie file
 frameRate = 20;         % frame rate of the movie file
-speedReduction = 1.0;   % reduce the frame rate by a constant value
+speedReduction = 1/2;   % reduce the frame rate by a constant value
 
 % The vertices of an n-dimensional cube defines the space
-height = 10.0;           % meters
-width = 10.0;            % meters
+height = 30.0;           % meters
+width = 30.0;            % meters
 space.box = [0 width width  0;...   % dimensions of the box
              0 0     height height];
      
 % Define the particles
-particle.number = 10;   % Number of particles - must be an integer
+particle.number = 15;   % Number of particles - must be an integer
 particle.number = int32(particle.number); % Let's not take any chances. Note that int32 rounds, does not truncate
 particle.radius = NaN(1,particle.number); % preallocate vector of particle radii
 particle.mass = NaN(1,particle.number);   % preallocate vector of particle masses
 particle.spring = NaN(1,particle.number); % preallocate vector of particle spring constants
 particle.damper = NaN(1, particle.number);% preallocate vector of particle damper constants
-radius = 0.2;  % m, For a homogenous radius distribution
+particle.charge = NaN(1, particle.number); % preallocate vector of particle charges
+particle.ke = 1.0;       % N m2 / C2, Coulombs constant
+particle.collisions = true;
+
+radius = 0.15;  % m, For a homogenous radius distribution
 mass = 0.1;     % kg, mass of particles
-spring = 100;   % N/m, spring constant
-damper = 0.0;     % kg/s, damper constant
+spring = 1000;   % N/m, spring constant
+damper = 0.001;     % kg/s, damper constant
+charge = 0.8;    % C, charge of an electron
 for i=1:1:particle.number           % for all particles,
     particle.radius(i) = radius;    % radius
     particle.mass(i) = mass;        % mass
     particle.spring(i) = spring;    % spring constant
     particle.damper(i) = damper;    % damper constant
+    if mod(i,2)==0
+        particle.charge(i) = -charge;   % elementary charge 
+    else
+        particle.charge(i) = charge;
+    end
 end
 % Change particle properties individually if you want
 % particle.mass(5) = 0.1;
@@ -54,6 +64,12 @@ xy0 = ones(1,particle.number)*(height-1.1*radius);              % place all on t
 xxd0 = 0.0*ones(1,particle.number);                             % x initial velocoity
 xyd0 = zeros(1,particle.number);                                % y initial velocity
 
+speedK = 6.0;
+xx0 = randperm(width,particle.number);
+xy0 = randperm(width,particle.number);
+xxd0 = speedK*rand([1,particle.number]);
+xyd0 = speedK*rand([1,particle.number]);
+
 % Put all initial conditions into one vector
 % vector = [x1, y1, xd1, yd1, x2, y2, .... , xn, yn, xdn, ydn]
 for i = 1:1:particle.number    
@@ -66,22 +82,24 @@ end
 % Change particle initial conditions individually if you like
 % If you want a single odd particle make oddParticle particle number that
 % you want to be odd, otherwise make it zero
+
 oddParticle = 1;
 %x0(oddParticle) = 1.5*x0(oddParticle);
 %x0(oddParticle+1) = 1.5*x0(oddParticle+1);
-x0(3) = x0(oddParticle+2)*5+10.0;
-x0(4) = x0(oddParticle+3)*50+10.0;
-particle.radius(oddParticle) = 0.2;
-x0(1) = 0.5*x0(1);      % specify the x position of the first particle
-x0(2) = 0.5*x0(2);      % specify the y position of the first particle
-particle.mass(oddParticle) = mass*2.0;
+x0(3) = x0(oddParticle+2)*0.0;
+x0(4) = x0(oddParticle+3)*0.0;
+particle.radius(oddParticle) = radius;
+x0(1) = 0.5*width;      % specify the x position of the first particle
+x0(2) = 0.5*height;      % specify the y position of the first particle
+particle.mass(oddParticle) = mass*20000.0;
+particle.charge(oddParticle) = charge*2.0;
 
 % You can use the timestep directly if you want. I like to calculate one
 % based on the framerate that I want.
 %times = startTime:timeStep:endTime;
 times = linspace(startTime,endTime,endTime*frameRate);      % linear vector for time
-options = odeset('RelTol',1e-9,'AbsTol',1e-9); % Solution times can go up pretty quickly if you turn the tolerance too low.
-[time, states] = ode23(@(t,x)stateFunc(t,x,space,particle),times,x0);   % ode solver command
+options = odeset('RelTol',1e-8,'AbsTol',1e-8); % Solution times can go up pretty quickly if you turn the tolerance too low.
+[time, states] = ode45(@(t,x)stateFunc(t,x,space,particle),times,x0);   % ode solver command
 
 % Break out for plotting and movie
 for i = 1:1:particle.number    
@@ -100,13 +118,17 @@ if doYouWantMovie
     size = 10;
     for i=1:1:length(x)
         for j = 1:1:particle.number
+                        
             if j == oddParticle && oddParticle ~= 0
                 color = 'r';
-                size = 20;
+                size = 10*particle.radius(oddParticle)/radius;
             else
                 color = 'b';
                 size = 10;
-            end
+                if particle.charge(j) > 0
+                color = 'g';
+                end
+            end            
             plot(x(i,j),y(i,j),'ob','MarkerSize',size,'MarkerEdgeColor',color,'MarkerFaceColor',color);
             hold on
         end
